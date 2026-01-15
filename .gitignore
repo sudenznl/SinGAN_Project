@@ -1,0 +1,13 @@
+# SinGAN klasörünü GitHub'a ekleme (büyük, localde kalsın)
+SinGAN/
+
+# Eğitim sırasında oluşan modeller ve çıktı klasörleri
+TrainedModels/
+Output/
+*.zip
+
+# Python cache ve virtual environment
+__pycache__/
+*.pyc
+venv/
+.env
