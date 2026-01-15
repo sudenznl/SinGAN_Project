@@ -1,46 +1,34 @@
 import os
-import shutil
-from tkinter import Tk, filedialog
 import subprocess
+import shutil
 
-# Torch kontrolü
-import torch
-import torchvision
-print("🔥 Torch sürümü:", torch.__version__)
+# Eğitilecek görsel (proje klasörüne koy)
+img_name = "drawing.png"
 
-# Input klasörü oluştur
+# Input klasörü
 os.makedirs("Input", exist_ok=True)
 
-# Tkinter ile görsel seç
-root = Tk()
-root.withdraw()  # Tk penceresini gizle
-img_path = filedialog.askopenfilename(
-    title="Bir görsel seçin",
-    filetypes=[("PNG Files", "*.png"), ("All Files", "*.*")]
-)
-root.destroy()
+# Eğer görsel Input içinde yoksa kopyala
+if not os.path.exists(f"Input/{img_name}"):
+    if not os.path.exists(img_name):
+        raise FileNotFoundError(f"{img_name} bulunamadı! Proje klasörüne koyun.")
+    shutil.copy(img_name, f"Input/{img_name}")
 
-if not img_path:
-    raise Exception("❌ Görsel seçilmedi, işlem iptal edildi.")
+# TrainedModels klasörünü oluştur
+os.makedirs("TrainedModels", exist_ok=True)
 
-# Input klasörüne kopyala
-shutil.copy(img_path, f"Input/{os.path.basename(img_path)}")
-img_name = os.path.basename(img_path)
-print("🖼️ Seçilen ve kopyalanan görsel:", img_name)
-
-# Eski modelleri sil
-if os.path.exists("TrainedModels"):
-    shutil.rmtree("TrainedModels")
-    print("🗑️ Eski modeller silindi")
-
-# SinGAN eğitimini başlat
-print("🚀 Model eğitimi başlıyor...")
-subprocess.run([
-    "python", "SinGAN/main_train.py",
-    "--input_name", img_name,
-    "--input_dir", "Input",
-    "--max_size", "250",
-    "--num_layer", "5"
-], check=True)
-
-print("✅ Eğitim tamamlandı")
+# Eğer daha önce eğitilmiş model yoksa eğit
+model_dir = f"TrainedModels/{os.path.splitext(img_name)[0]}"
+if not os.path.exists(model_dir):
+    print("Eğitim başlatılıyor...")
+    subprocess.run([
+        "python", "SinGAN/main_train.py",
+        "--input_name", img_name,
+        "--input_dir", "Input",
+        "--max_size", "250",
+        "--num_layer", "5",
+        "--not_cuda"
+    ], check=True)
+    print("Eğitim tamamlandı!")
+else:
+    print("Model zaten var, yeniden eğitim yapılmayacak.")
